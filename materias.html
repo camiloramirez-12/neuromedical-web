@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Materias - SIA 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { display: flex; align-items: stretch; justify-content: flex-start; overflow: hidden; height: 100vh; }
+        .dashboard-layout { display: flex; width: 100vw; height: 100vh; }
+        .sidebar { width: 260px; height: 100%; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; z-index: 100; }
+        .sidebar-brand { display: flex; align-items: center; gap: 12px; font-size: 1.3rem; font-weight: 700; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
+        .sidebar-menu { list-style: none; margin-top: 30px; display: flex; flex-direction: column; gap: 8px; }
+        .menu-item a { display: flex; align-items: center; gap: 14px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; border-radius: var(--border-radius-sm); transition: var(--transition-fluid); }
+        .menu-item.active a, .menu-item a:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.05); border-left: 4px solid var(--accent-primary); padding-left: 12px; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; height: 100%; }
+        .controls-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
+        .search-box { display: flex; gap: 10px; flex: 1; max-width: 400px; }
+        .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .subject-card { position: relative; border-left: 6px solid var(--accent-primary); }
+        .card-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 10px; }
+        .btn-small { padding: 6px 12px; font-size: 0.85rem; border-radius: var(--border-radius-sm); cursor: pointer; border: none; font-weight: 600; transition: var(--transition-fluid); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        /* Estilos del Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { width: 90%; max-width: 500px; padding: 30px; }
+    </style>
+</head>
+<body>
+    <div class="preloader" id="global-preloader"><div class="spinner"></div></div>
+    <div class="dashboard-layout">
+        <!-- Sidebar Shell -->
+        <aside class="glass-container sidebar">
+            <div>
+                <div class="sidebar-brand">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 3L1 9L12 15L21 10.05V16.5H23V9L12 3Z" fill="var(--accent-primary)"/><path d="M4.18182 12.2182V17.0909C4.18182 18.5 7.68182 21 12 21C16.3182 21 19.8182 18.5 19.8182 17.0909V12.2182L12 16.4818L4.18182 12.2182Z" fill="var(--accent-hover)"/></svg>
+                    <span>Campus pascual bravo</span>
+                </div>
+                <ul class="sidebar-menu">
+                    <li class="menu-item"><a href="dashboard.html"><span>Inicio</span></a></li>
+                    <li class="menu-item active"><a href="materias.html"><span>Mis Materias</span></a></li>
+                    <li class="menu-item"><a href="pensum.html"><span>Mi Pensum</span></a></li>
+                    <li class="menu-item"><a href="notas.html"><span>Calculadora Notas</span></a></li>
+                    <li class="menu-item"><a href="horarios.html"><span>Horarios</span></a></li>
+                    <li class="menu-item"><a href="calendario.html"><span>Calendario</span></a></li>
+                    <li class="menu-item"><a href="perfil.html"><span>Mi Perfil</span></a></li>
+                    <li class="menu-item"><a href="configuracion.html"><span>Configuración</span></a></li>
+                </ul>
+            </div>
+            <button class="btn-secondary" onclick="window.db.cerrarSesion(); window.location.href='index.html';">Cerrar Sesión</button>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <div class="controls-row">
+                <div>
+                    <h2>Gestión de Asignaturas Académicas</h2>
+                    <p style="color: var(--text-muted);">Inscribe, edita y organiza tus materias del semestre.</p>
+                </div>
+                <button class="btn-primary" style="width: auto; padding: 12px 24px;" id="btn-open-modal">
+                    + Inscribir Materia
+                </button>
+            </div>
+
+            <div class="controls-row glass-container" style="padding: 15px; border-radius: var(--border-radius-sm);">
+                <div class="search-box">
+                    <input type="text" id="search-input" class="form-input" placeholder="Buscar materia por nombre o código...">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <select id="filter-status" class="form-input" style="padding: 8px 12px; width: 150px;">
+                        <option value="TODAS">Todos los estados</option>
+                        <option value="En curso">En curso</option>
+                        <option value="Aprobada">Aprobada</option>
+                        <option value="Pendiente">Pendiente</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Rejilla Dinámica de Materias -->
+            <section class="subject-grid" id="subjects-container"></section>
+        </main>
+    </div>
+
+    <!-- Modal Formulario de Inscripción/Edición -->
+    <div class="modal" id="subject-modal">
+        <div class="glass-container modal-content">
+            <h3 id="modal-title" style="margin-bottom: 20px;">Inscribir Nueva Materia</h3>
+            <form id="subject-form">
+                <input type="hidden" id="sub-id">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Materia</label>
+                    <input type="text" id="sub-name" class="form-input" required placeholder="Ej: Cálculo Integral">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Código</label>
+                        <input type="text" id="sub-code" class="form-input" required placeholder="MEC-102">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Créditos</label>
+                        <input type="number" id="sub-credits" class="form-input" required min="1" max="6" value="3">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Profesor</label>
+                        <input type="text" id="sub-teacher" class="form-input" required placeholder="Ing. Carlos Ochoa">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Aula / Bloque</label>
+                        <input type="text" id="sub-room" class="form-input" required placeholder="Bloque P - 402">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Estado</label>
+                        <select id="sub-status" class="form-input">
+                            <option value="En curso">En curso</option>
+                            <option value="Aprobada">Aprobada</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Color Distintivo</label>
+                        <input type="color" id="sub-color" class="form-input" style="padding:4px; height:45px;" value="#4f46e5">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" id="btn-close-modal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Configuración</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sesion = window.db.obtenerSesionActual();
+            if(!sesion) { window.location.href = 'login.html'; return; }
+            
+            setTimeout(() => {
+                document.getElementById('global-preloader').style.opacity = '0';
+                document.getElementById('global-preloader').style.visibility = 'hidden';
+            }, 300);
+
+            const modal = document.getElementById('subject-modal');
+            const form = document.getElementById('subject-form');
+            const container = document.getElementById('subjects-container');
+
+            document.getElementById('btn-open-modal').addEventListener('click', () => {
+                form.reset();
+                document.getElementById('sub-id').value = '';
+                document.getElementById('modal-title').innerText = 'Inscribir Nueva Materia';
+                modal.style.display = 'flex';
+            });
+
+            document.getElementById('btn-close-modal').addEventListener('click', () => modal.style.display = 'none');
+
+            function renderSubjects() {
+                container.innerHTML = '';
+                const query = document.getElementById('search-input').value.toLowerCase();
+                const filter = document.getElementById('filter-status').value;
+                const list = window.db.obtenerMateriasPorUsuario(sesion.id);
+
+                const filtradas = list.filter(m => {
+                    const matchQuery = m.name.toLowerCase().includes(query) || m.code.toLowerCase().includes(query);
+                    const matchStatus = filter === 'TODAS' || m.estado === filter;
+                    return matchQuery && matchStatus;
+                });
+
+                if(filtradas.length === 0) {
+                    container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:var(--text-muted); padding:40px;">No se encontraron materias registradas.</p>`;
+                    return;
+                }
+
+                filtradas.forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = 'interactive-card subject-card';
+                    card.style.borderLeftColor = m.color || 'var(--accent-primary)';
+                    card.innerHTML = `
+                        <span style="position:absolute; top:15px; right:15px; font-size:0.75rem; background:rgba(255,255,255,0.05); padding:3px 8px; border-radius:10px; font-weight:600;">${m.code}</span>
+                        <h4 style="font-size:1.2rem; margin-bottom:5px;">${m.name}</h4>
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Prof: ${m.teacher}</p>
+                        <div style="font-size:0.9rem; display:flex; flex-direction:column; gap:4px;">
+                            <span><strong>Créditos:</strong> ${m.credits}</span>
+                            <span><strong>Aula:</strong> ${m.room}</span>
+                            <span><strong>Estado:</strong> <span style="color:${m.estado==='Aprobada'?'var(--success)':'var(--warning)'}">${m.estado}</span></span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-small btn-secondary" onclick="editarMateria('${m.id}')">Editar</button>
+                            <button class="btn-small btn-danger" onclick="eliminarMateria('${m.id}')">Eliminar</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('sub-id').value;
+                const data = {
+                    usuarioId: sesion.id,
+                    name: document.getElementById('sub-name').value,
+                    code: document.getElementById('sub-code').value,
+                    credits: document.getElementById('sub-credits').value,
+                    teacher: document.getElementById('sub-teacher').value,
+                    room: document.getElementById('sub-room').value,
+                    estado: document.getElementById('sub-status').value,
+                    color: document.getElementById('sub-color').value
+                };
+
+                if(id) {
+                    window.db.actualizarMateria(id, data);
+                    window.app.mostrarToast('Materia actualizada con éxito.', 'success');
+                } else {
+                    window.db.guardarMateria(data);
+                    window.app.mostrarToast('Materia inscrita correctamente.', 'success');
+                }
+                modal.style.display = 'none';
+                renderSubjects();
+            });
+
+            window.editarMateria = function(id) {
+                const list = window.db.obtenerTodasLasMaterias();
+                const m = list.find(item => item.id === id);
+                if(!m) return;
+                document.getElementById('sub-id').value = m.id;
+                document.getElementById('sub-name').value = m.name;
+                document.getElementById('sub-code').value = m.code;
+                document.getElementById('sub-credits').value = m.credits;
+                document.getElementById('sub-teacher').value = m.teacher;
+                document.getElementById('sub-room').value = m.room;
+                document.getElementById('sub-status').value = m.estado;
+                document.getElementById('sub-color').value = m.color || '#4f46e5';
+                document.getElementById('modal-title').innerText = 'Modificar Materia';
+                modal.style.display = 'flex';
+            };
+
+            window.eliminarMateria = function(id) {
+                if(confirm('¿Está completamente seguro de eliminar esta asignatura? Se borrarán sus notas de forma permanente.')) {
+                    window.db.eliminarMateria(id);
+                    window.app.mostrarToast('Asignatura purgada.', 'danger');
+                    renderSubjects();
+                }
+            };
+
+            document.getElementById('search-input').addEventListener('input', renderSubjects);
+            document.getElementById('filter-status').addEventListener('change', renderSubjects);
+            renderSubjects();
+        });
+    </script>
+</body>
+</html>

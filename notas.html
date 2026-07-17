@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Notas - SIA 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { display: flex; align-items: stretch; justify-content: flex-start; overflow: hidden; height: 100vh; }
+        .dashboard-layout { display: flex; width: 100vw; height: 100vh; }
+        .sidebar { width: 260px; height: 100%; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; z-index: 100; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; height: 100%; }
+        .calculator-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 25px; margin-top: 25px; }
+        .activity-row { display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: 12px; align-items: center; margin-bottom: 12px; }
+        .badge-status { padding: 6px 12px; border-radius: 20px; font-weight: 700; text-align: center; font-size: 0.9rem; margin-top: 15px; display: block; }
+        @media (max-width: 992px) { .calculator-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="preloader" id="global-preloader"><div class="spinner"></div></div>
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation Shell -->
+        <aside class="glass-container sidebar">
+            <div>
+                <h3 style="padding-bottom:20px; border-bottom:1px solid var(--glass-border);">Campus pascual bravo</h3>
+                <ul style="list-style:none; margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                    <li><a href="dashboard.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Inicio</a></li>
+                    <li><a href="materias.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Mis Materias</a></li>
+                    <li><a href="pensum.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Mi Pensum</a></li>
+                    <li><a href="notas.html" style="color:var(--text-main); font-weight:700; display:block; padding:10px; border-left:4px solid var(--accent-primary);">Calculadora Notas</a></li>
+                    <li><a href="horarios.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Horarios</a></li>
+                    <li><a href="calendario.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Calendario</a></li>
+                    <li><a href="perfil.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Mi Perfil</a></li>
+                </ul>
+            </div>
+            <button class="btn-secondary" onclick="window.db.cerrarSesion(); window.location.href='index.html';">Salir</button>
+        </aside>
+
+        <!-- Main Area -->
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h2>Auditoría de Calificaciones y Notas</h2>
+                    <p style="color: var(--text-muted);">Simulador analítico de promedios mínimos requeridos para aprobación.</p>
+                </div>
+                <div style="width: 250px;">
+                    <select id="calc-subject-selector" class="form-input">
+                        <!-- Inyectado vía JS -->
+                    </select>
+                </div>
+            </header>
+
+            <div class="calculator-grid">
+                <!-- Panel de Entrada de Notas -->
+                <div class="interactive-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>Corte de Actividades</h3>
+                        <button class="btn-primary" style="width:auto; padding:8px 16px; font-size:0.9rem;" id="btn-add-activity">+ Añadir Nota</button>
+                    </div>
+                    <div id="activities-form-container">
+                        <!-- Filas de entradas -->
+                    </div>
+                </div>
+
+                <!-- Panel de Resultados Analíticos -->
+                <div class="interactive-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3>Proyección Analítica</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Cálculos automáticos del corte actual.</p>
+                        
+                        <div style="display:flex; flex-direction:column; gap:12px; font-size:1rem;">
+                            <div style="display:flex; justify-content:space-between;"><span>Promedio Actual:</span><strong id="res-promedio">0.0</strong></div>
+                            <div style="display:flex; justify-content:space-between;"><span>Porcentaje Evaluado:</span><strong id="res-porcentaje">0%</strong></div>
+                            <div style="display:flex; justify-content:space-between;"><span>Nota Acumulada:</span><strong id="res-acumulada">0.0 / 5.0</strong></div>
+                            <div style="display:flex; justify-content:space-between;"><span>Falta por evaluar:</span><strong id="res-restante">100%</strong></div>
+                        </div>
+
+                        <span id="badge-veredicto" class="badge-status" style="background: rgba(255,255,255,0.05); color: var(--text-main);">Sin datos suficientes</span>
+                    </div>
+
+                    <div style="margin-top: 25px; border-top: 1px solid var(--glass-border); padding-top: 15px;">
+                        <h4 style="margin-bottom: 10px; font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted);">Para ganar con 3.0 necesitas:</h4>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-primary);" id="res-requisito">N/A</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/notas.js"></script>
+</body>
+</html>

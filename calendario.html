@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Virtual - SIA 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { display: flex; align-items: stretch; justify-content: flex-start; overflow: hidden; height: 100vh; }
+        .dashboard-layout { display: flex; width: 100vw; height: 100vh; }
+        .sidebar { width: 260px; height: 100%; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; z-index: 100; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; height: 100%; }
+        .agenda-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 25px; margin-top: 25px; }
+        @media (max-width: 768px) { .agenda-layout { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="preloader" id="global-preloader"><div class="spinner"></div></div>
+    <div class="dashboard-layout">
+        <aside class="glass-container sidebar">
+            <div>
+                <h3 style="padding-bottom:20px; border-bottom:1px solid var(--glass-border);">Campus pascual bravo</h3>
+                <ul style="list-style:none; margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                    <li><a href="dashboard.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Inicio</a></li>
+                    <li><a href="materias.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Mis Materias</a></li>
+                    <li><a href="notas.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Calculadora Notas</a></li>
+                    <li><a href="calendario.html" style="color:var(--text-main); font-weight:700; display:block; padding:10px; border-left:4px solid var(--accent-primary);">Calendario</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <h2>Calendario y Agenda Evaluativa</h2>
+            <p style="color: var(--text-muted);">Programa recordatorios, fechas de parciales y entregas críticas.</p>
+
+            <div class="agenda-layout">
+                <div class="interactive-card">
+                    <h4>Agendar Evento</h4>
+                    <form id="agenda-form" onsubmit="return false;" style="margin-top: 15px;">
+                        <div class="form-group">
+                            <label class="form-label">Título de la actividad</label>
+                            <input type="text" id="evt-title" class="form-input" required placeholder="Ej: Parcial 1 Cálculo">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fecha de Entrega</label>
+                            <input type="date" id="evt-date" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo</label>
+                            <select id="evt-type" class="form-input">
+                                <option value="Parcial">Examen Parcial</option>
+                                <option value="Laboratorio">Entrega Laboratorio</option>
+                                <option value="Quiz">Quiz Rápido</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" id="btn-save-event">Fijar en Agenda</button>
+                    </form>
+                </div>
+
+                <div class="interactive-card">
+                    <h4>Lista de Compromisos de este Periodo</h4>
+                    <ul style="list-style:none; display:flex; flex-direction:column; gap:12px; margin-top:15px;" id="agenda-events-list">
+                        <!-- Vía JS -->
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sesion = window.db.obtenerSesionActual();
+            if(!sesion) { window.location.href = 'login.html'; return; }
+
+            setTimeout(() => {
+                document.getElementById('global-preloader').style.opacity = '0';
+                document.getElementById('global-preloader').style.visibility = 'hidden';
+            }, 200);
+
+            const container = document.getElementById('agenda-events-list');
+
+            function renderEvents() {
+                container.innerHTML = '';
+                const list = window.db.obtenerEventosPorUsuario(sesion.id);
+                if(list.length === 0) {
+                    container.innerHTML = `<li style="color:var(--text-muted); font-size:0.9rem;">No registras actividades pendientes en tu calendario académico.</li>`;
+                    return;
+                }
+                list.forEach(e => {
+                    const li = document.createElement('li');
+                    li.style = "display:flex; justify-content:space-between; align-items:center; padding:12px; background:rgba(255,255,255,0.02); border:1px solid var(--glass-border); border-radius:6px;";
+                    li.innerHTML = `<div><strong>${e.titulo}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${e.fecha}</span></div>
+                    <div style="display:flex; gap:10px; align-items:center;"><span style="font-size:0.75rem; background:var(--accent-primary); padding:3px 8px; border-radius:4px;">${e.tipo}</span>
+                    <button class="btn-primary" style="padding:4px 8px; width:auto; background:var(--danger);" onclick="borrarEvt('${e.id}')">X</button></div>`;
+                    container.appendChild(li);
+                });
+            }
+
+            document.getElementById('btn-save-event').addEventListener('click', () => {
+                const title = document.getElementById('evt-title').value.trim();
+                const date = document.getElementById('evt-date').value;
+                const type = document.getElementById('evt-type').value;
+
+                if(!title || !date) { window.app.mostrarToast('Por favor diligencie todo el formulario.','warning'); return; }
+
+                window.db.guardarEvento({ usuarioId: sesion.id, titulo: title, fecha: date, tipo: type });
+                window.app.mostrarToast('Evento fijado con éxito.', 'success');
+                document.getElementById('evt-title').value = '';
+                document.getElementById('evt-date').value = '';
+                renderEvents();
+            });
+
+            window.borrarEvt = function(id) {
+                window.db.eliminarEvento(id);
+                window.app.mostrarToast('Actividad removida.','info');
+                renderEvents();
+            };
+
+            renderEvents();
+        });
+    </script>
+</body>
+</html>

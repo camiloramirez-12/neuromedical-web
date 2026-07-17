@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Estudiante - SIA 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilos específicos de la arquitectura del Dashboard */
+        body {
+            display: flex;
+            align-items: stretch;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+        
+        .dashboard-layout {
+            display: flex;
+            width: 100vw;
+            min-height: 100vh;
+        }
+
+        /* Menú Lateral Animado (Sidebar) */
+        .sidebar {
+            width: 260px;
+            height: 100%;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition-fluid);
+        }
+
+        .menu-item.active a, .menu-item a:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 12px;
+        }
+
+        /* Contenedor Principal de Contenido */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-badge {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .profile-img-container {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--accent-primary);
+        }
+
+        .profile-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Rejilla de Tarjetas de Estadísticas e Indicadores */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 10px;
+            color: var(--text-main);
+        }
+
+        /* Bloques Complejos: Gráficos y Actividades */
+        .dashboard-details {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 260px;
+            position: relative;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .phrase-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-left: 4px solid var(--success);
+            font-style: italic;
+        }
+
+        .activity-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            body { overflow-y: auto; height: auto; }
+            .dashboard-layout { flex-direction: column; overflow-y: auto; height: auto; }
+            .dashboard-details { grid-template-columns: 1fr; }
+            .sidebar { width: 100% !important; height: auto !important; padding: 16px !important; }
+            .sidebar-menu { flex-direction: row !important; overflow-x: auto; gap: 12px !important; }
+            .menu-item a { padding: 8px 12px !important; white-space: nowrap; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="preloader" id="global-preloader"><div class="spinner"></div></div>
+
+    <div class="dashboard-layout">
+        <!-- BARRA LATERAL ANIMADA (COMPONENTE GLOBAL) -->
+        <aside class="glass-container sidebar">
+            <div>
+                <div class="sidebar-brand">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 3L1 9L12 15L21 10.05V16.5H23V9L12 3Z" fill="var(--accent-primary)"/><path d="M4.18182 12.2182V17.0909C4.18182 18.5 7.68182 21 12 21C16.3182 21 19.8182 18.5 19.8182 17.0909V12.2182L12 16.4818L4.18182 12.2182Z" fill="var(--accent-hover)"/></svg>
+                    <span>Campus Pascual Bravo</span>
+                </div>
+                <ul class="sidebar-menu">
+                    <li class="menu-item active"><a href="dashboard.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span>Inicio</span></a></li>
+                    <li class="menu-item"><a href="materias.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span>Materias</span></a></li>
+                    <li class="menu-item"><a href="pensum.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg><span>Pensum</span></a></li>
+                    <li class="menu-item"><a href="notas.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>Calcula tu Notas</span></a></li>
+                    <li class="menu-item"><a href="horarios.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span> Mi Horario</span></a></li>
+                    <li class="menu-item"><a href="calendario.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Calendario</span></a></li>
+                    <li class="menu-item"><a href="perfil.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Mi Perfil</span></a></li>
+                    <li class="menu-item"><a href="configuracion.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>Configuración</span></a></li>
+                </ul>
+            </div>
+            <div class="sidebar-footer">
+                <button class="btn-secondary" id="btn-logout" style="padding: 10px; display: flex; gap: 10px; align-items: center; justify-content: center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENEDOR PRINCIPAL DE MÓDULOS -->
+        <main class="main-content">
+            <!-- TABLÓN DE ANUNCIOS INSTITUCIONALES EN VIVO -->
+            <div id="live-announcements-marquee" style="display:none; margin-bottom:20px; padding:12px 20px; background:rgba(245,158,11,0.1); border:1px solid var(--warning); border-radius:var(--border-radius-sm); font-size:0.9rem; font-weight:600; color:var(--warning); align-items:center; gap:12px;">
+                <span style="font-size:1.2rem;">📢</span>
+                <marquee id="marquee-text-content" scrollamount="5"></marquee>
+            </div>
+
+            <header class="main-header">
+                <div>
+                    <h2 style="font-size: 1.8rem;" id="welcome-user-title">Cargando Campus Virtual...</h2>
+                    <p style="color: var(--text-muted);" id="student-academic-info">Programa Académico</p>
+                </div>
+                <div class="profile-badge">
+                    <div style="text-align: right;">
+                        <p style="font-weight: 600;" id="header-user-name">Estudiante SIA</p>
+                        <span style="font-size: 0.8rem; background: var(--accent-primary); padding: 2px 8px; border-radius: 10px;">Alumno</span>
+                    </div>
+                    <div class="profile-img-container">
+                        <img id="header-user-avatar" src="" alt="Avatar">
+                    </div>
+                </div>
+            </header>
+
+            <!-- REJILLA DE TARJETAS INTERACTIVAS -->
+            <section class="stats-grid">
+                <div class="interactive-card">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Promedio Acumulado</p>
+                    <div class="stat-value" id="stat-promedio">0.0</div>
+                </div>
+                <div class="interactive-card">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Materias en Curso</p>
+                    <div class="stat-value" id="stat-materias-cant">0</div>
+                </div>
+                <div class="interactive-card">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Créditos Cursados</p>
+                    <div class="stat-value" id="stat-creditos">0</div>
+                </div>
+                <div class="interactive-card">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Progreso de Carrera</p>
+                    <div class="stat-value" id="stat-progreso-porcentaje">0%</div>
+                </div>
+            </section>
+
+            <!-- ÁREA DETALLADA CON CANVAS GRÁFICO -->
+            <section class="dashboard-details">
+                <div class="interactive-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3>Rendimiento por Semestres</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Seguimiento analítico e histórico de tus calificaciones.</p>
+                    </div>
+                    <div class="chart-container">
+                        <!-- Canvas Motor de Gráficos Nativos -->
+                        <canvas id="rendimientoChart"></canvas>
+                    </div>
+                    <div class="phrase-box glass-container" id="motivation-phrase">
+                        "La persistencia transforma el diseño conceptual en ingeniería real."
+                    </div>
+                </div>
+
+                <div class="interactive-card">
+                    <h3>Próximas Actividades</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Fechas límite y evaluaciones de tu agenda.</p>
+                    <ul class="activity-list" id="dashboard-activities">
+                        <!-- Inyección vía JS -->
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-container" id="global-toast-container"></div>
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        // Escudo Core: Validar si el Administrador activó el Modo Mantenimiento
+        async function verificarMantenimientoPlataforma() {
+            try {
+                const res = await fetch(`${window.db.CLOUD_DB_URL}/configuracion_sistema.json`);
+                const data = await res.json();
+                
+                // Si el mantenimiento está activo y el usuario es estudiante, se corta el flujo de datos
+                if(data && data.mantenimiento === true) {
+                    const sesion = window.db.obtenerSesionActual();
+                    if(sesion && sesion.rol === 'student') {
+                        document.body.innerHTML = `
+                            <div style="width:100vw; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; background:linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color:#f8fafc; font-family:sans-serif; text-align:center; padding:20px;">
+                                <h1 style="font-size:3rem; margin-bottom:10px;">🚨 Campus en Mantenimiento</h1>
+                                <p style="color:#94a3b8; font-size:1.1rem; max-width:500px; margin-bottom:25px;">La central de administración core del SIA está auditando los nodos de la base de datos en este momento. Por favor, regresa más tarde.</p>
+                                <button onclick="window.db.cerrarSesion(); window.location.href='index.html';" style="padding:12px 24px; background:#ef4444; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Volver al Inicio</button>
+                            </div>
+                        `;
+                    }
+                }
+            } catch(e){}
+        }
+
+        // Cargar anuncios síncronos de Firebase en tiempo real
+        async function chequearAnunciosGlobales() {
+            try {
+                const res = await fetch(`${window.db.CLOUD_DB_URL}/anuncios.json`);
+                const data = await res.json();
+                if(data) {
+                    const lista = Object.values(data);
+                    if(lista.length > 0) {
+                        const caja = document.getElementById('live-announcements-marquee');
+                        const texto = document.getElementById('marquee-text-content');
+                        
+                        texto.innerText = lista.map(a => a.texto).join('   |   ★   |   ');
+                        caja.style.display = 'flex';
+                    }
+                }
+            } catch(e) { 
+                console.log("Capa de anuncios operando en caché local."); 
+            }
+        }
+        
+        // Ejecutar apenas cargue el DOM de la página
+        document.addEventListener('DOMContentLoaded', () => {
+            verificarMantenimientoPlataforma();
+            chequearAnunciosGlobales();
+            
+            // Escuchar el estado de Firebase de manera asíncrona cada 10 segundos
+            setInterval(verificarMantenimientoPlataforma, 10000);
+        });
+    </script>
+</body>
+</html>

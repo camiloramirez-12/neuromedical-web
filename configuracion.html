@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración General - SIA 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { display: flex; align-items: stretch; justify-content: flex-start; overflow: hidden; height: 100vh; }
+        .dashboard-layout { display: flex; width: 100vw; height: 100vh; }
+        .sidebar { width: 260px; height: 100%; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; z-index: 100; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; height: 100%; }
+    </style>
+</head>
+<body>
+    <div class="preloader" id="global-preloader"><div class="spinner"></div></div>
+    <div class="dashboard-layout">
+        <aside class="glass-container sidebar">
+            <div><h3 style="padding-bottom:20px; border-bottom:1px solid var(--glass-border);">Campus pascual bravo</h3>
+                <ul style="list-style:none; margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                    <li><a href="dashboard.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Inicio</a></li>
+                    <li><a href="configuracion.html" style="color:var(--text-main); font-weight:700; display:block; padding:10px; border-left:4px solid var(--accent-primary);">Configuración</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <h2>Preferencia del Entorno Gráfico</h2>
+            <p style="color: var(--text-muted);">Adapta los comportamientos del sistema a tus requerimientos visuales.</p>
+
+            <div class="interactive-card" style="max-width: 500px; margin-top: 25px;">
+                <div class="form-group">
+                    <label class="form-label">Tema de la Interfaz</label>
+                    <select id="cfg-theme" class="form-input" style="appearance: auto;">
+                        <option value="dark">Modo Oscuro (Premium Glass)</option>
+                        <option value="light">Modo Claro (High Contrast)</option>
+                    </select>
+                </div>
+                <button class="btn-primary" id="btn-save-cfg">Inyectar Configuración</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('global-preloader').style.opacity = '0';
+                document.getElementById('global-preloader').style.visibility = 'hidden';
+            }, 200);
+
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            document.getElementById('cfg-theme').value = current;
+
+            document.getElementById('btn-save-cfg').addEventListener('click', () => {
+                const theme = document.getElementById('cfg-theme').value;
+                document.documentElement.setAttribute('data-theme', theme);
+                window.db.guardarConfiguracion({ theme: theme });
+                window.app.mostrarToast('Preferencia inyectada.', 'success');
+            });
+        });
+    </script>
+</body>
+</html>

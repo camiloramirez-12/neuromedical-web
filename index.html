@@ -1,345 +1,76 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroMedical | Excelencia en Neurociencias</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
-        .page-section { display: none; animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-        .active-section { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-        .medical-card { transition: all 0.4s ease; border: 1px solid #f1f5f9; }
-        .medical-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); border-color: #3b82f6; }
-        .nav-link { position: relative; }
-        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #2563eb; transition: 0.3s; }
-        .nav-link:hover::after { width: 100%; }
-    </style>
+    <title>SIA - Sistema Integrado Académico v2026</title>
+    <!-- Hoja de Estilo Única Centralizada -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-[#F8FAFC] text-slate-900">
+<body>
 
-    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="showSection('inicio')">
-                <div class="bg-blue-600 p-1.5 rounded-lg">
-                    <i data-lucide="activity" class="text-white w-6 h-6"></i>
-                </div>
-                <span class="text-2xl font-black tracking-tighter text-slate-800">NEURO<span class="text-blue-600">MEDICAL</span></span>
-            </div>
-            <div class="hidden md:flex gap-8 font-bold text-[11px] tracking-[0.2em] text-slate-500">
-                <button onclick="showSection('inicio')" class="nav-link uppercase hover:text-blue-600">Inicio</button>
-                <button onclick="showSection('especialidades')" class="nav-link uppercase hover:text-blue-600">Especialidades</button>
-                <button onclick="showSection('equipo')" class="nav-link uppercase hover:text-blue-600">Staff Médico</button>
-                <button onclick="showSection('portal')" class="bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700 transition">Portal Privado</button>
-            </div>
-            <button onclick="openModal('bookingModal')" class="hidden lg:block border-2 border-blue-600 text-blue-600 px-6 py-2 rounded-full text-xs font-black hover:bg-blue-600 hover:text-white transition-all">
-                CITA EXPRESS
+    <!-- Pantalla de Carga Síncrona (Preloader) -->
+    <div class="preloader" id="global-preloader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Contenedor del Portal de Bienvenida (Glassmorphism Core) -->
+    <main class="glass-container welcome-wrapper">
+        <!-- Logo Institucional Renderizado Nativo SVG -->
+        <svg class="welcome-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3L1 9L12 15L21 10.05V16.5H23V9L12 3Z" fill="#4f46e5"/>
+            <path d="M4.18182 12.2182V17.0909C4.18182 18.5 7.68182 21 12 21C16.3182 21 19.8182 18.5 19.8182 17.0909V12.2182L12 16.4818L4.18182 12.2182Z" fill="#6366f1"/>
+        </svg>
+
+        <h1 class="welcome-title">Portal Pascual bravo </h1>
+        <p class="welcome-tagline">Gestión de Pensum, Notas y Planificación Semestral.</p>
+
+        <!-- Acciones de Enrutamiento Inmediato -->
+        <div class="welcome-actions">
+            <button class="btn-primary" onclick="window.location.href='login.html'">
+                <span>Ingresar al Sistema</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
-        </div>
-    </nav>
-
-    <main id="inicio" class="page-section active-section pt-40 pb-20">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="grid lg:grid-cols-2 gap-16 items-center">
-                <div class="space-y-8">
-                    <div class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-xs font-bold">
-                        <i data-lucide="shield-check" class="w-4 h-4"></i> Hospital Acreditado Nivel V
-                    </div>
-                    <h1 class="text-7xl font-black text-slate-900 leading-[0.95]">Innovación <br><span class="text-blue-600">Cerebral.</span></h1>
-                    <p class="text-slate-500 text-xl leading-relaxed max-w-lg">NeuroMedical integra inteligencia artificial y micro-robótica para cirugías de mínima invasión con precisión submilimétrica.</p>
-                    <div class="flex gap-4">
-                        <button onclick="showSection('especialidades')" class="bg-slate-900 text-white px-10 py-5 rounded-2xl font-bold shadow-2xl hover:bg-blue-600 transition-all">Explorar Tratamientos</button>
-                        <button onclick="openModal('bookingModal')" class="bg-white border border-slate-200 px-10 py-5 rounded-2xl font-bold hover:shadow-lg transition-all">Agendar Cita</button>
-                    </div>
-                </div>
-                <div class="relative">
-                    <div class="absolute -z-10 top-10 right-10 w-full h-full bg-blue-100 rounded-[4rem]"></div>
-                    <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800" class="rounded-[4rem] shadow-3xl object-cover h-[600px] w-full border-8 border-white">
-                </div>
-            </div>
+            <button class="btn-secondary" onclick="window.location.href='register.html'">
+                Create una cuenta
+            </button>
         </div>
     </main>
 
-    <section id="especialidades" class="page-section pt-32 pb-20 px-6 max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-            <div>
-                <h2 class="text-5xl font-black mb-4">Servicios <span class="text-blue-600 text-outline">Médicos</span></h2>
-                <p class="text-slate-500">Unidad avanzada de diagnóstico y cirugía.</p>
-            </div>
-            <input type="text" placeholder="Buscar procedimiento..." class="p-4 bg-white border border-slate-200 rounded-2xl w-full md:w-80 outline-none focus:ring-2 ring-blue-500">
-        </div>
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-white p-10 rounded-[2.5rem] medical-card">
-                <div class="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600">
-                    <i data-lucide="brain-circuit"></i>
-                </div>
-                <h3 class="text-2xl font-bold mb-4">Neuro-Oncología</h3>
-                <p class="text-slate-500 mb-6">Remoción de tumores complejos mediante mapeo intraoperatorio y fluorescencia.</p>
-                <button class="text-blue-600 font-bold text-sm flex items-center gap-2">Ver procedimiento <i data-lucide="plus-circle" class="w-4 h-4"></i></button>
-            </div>
-            <div class="bg-white p-10 rounded-[2.5rem] medical-card">
-                <div class="bg-purple-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-purple-600">
-                    <i data-lucide="database"></i>
-                </div>
-                <h3 class="text-2xl font-bold mb-4">Cirugía Funcional</h3>
-                <p class="text-slate-500 mb-6">Estimulación cerebral profunda para Parkinson y desórdenes del movimiento.</p>
-                <button class="text-blue-600 font-bold text-sm flex items-center gap-2">Ver procedimiento <i data-lucide="plus-circle" class="w-4 h-4"></i></button>
-            </div>
-            <div class="bg-emerald-50 p-10 rounded-[2.5rem] medical-card border-none">
-                <div class="bg-emerald-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-emerald-600">
-                    <i data-lucide="zap"></i>
-                </div>
-                <h3 class="text-2xl font-bold mb-4">Microcirugía Columna</h3>
-                <p class="text-slate-500 mb-6">Recuperación en 24h para hernias discales con técnicas percutáneas.</p>
-                <button class="text-emerald-600 font-bold text-sm flex items-center gap-2">Ver procedimiento <i data-lucide="plus-circle" class="w-4 h-4"></i></button>
-            </div>
-        </div>
-    </section>
+    <!-- Contenedor Global para Notificaciones Dinámicas (Toast Engine) -->
+    <div class="toast-container" id="global-toast-container"></div>
 
-    <section id="equipo" class="page-section pt-32 pb-20 px-6 max-w-7xl mx-auto">
-        <h2 class="text-5xl font-black mb-16 text-center">Staff <span class="text-blue-600">Científico</span></h2>
-        <div class="grid lg:grid-cols-3 md:grid-cols-2 gap-10">
-            <div class="bg-white rounded-[3rem] p-8 medical-card text-center">
-                <img src="https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=400" class="w-32 h-32 rounded-3xl mx-auto mb-6 object-cover grayscale hover:grayscale-0 transition-all duration-500">
-                <h3 class="text-xl font-black">Dr. Julian Vance</h3>
-                <p class="text-blue-600 text-xs font-bold uppercase tracking-widest mb-4">Director Quirúrgico</p>
-                <div class="flex justify-center gap-2 mb-6">
-                    <span class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold">Harvard Med</span>
-                    <span class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold">20+ Años</span>
-                </div>
-                <button onclick="openModal('bookingModal')" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600">Agendar Cita</button>
-            </div>
-            <div class="bg-white rounded-[3rem] p-8 medical-card text-center">
-                <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400" class="w-32 h-32 rounded-3xl mx-auto mb-6 object-cover">
-                <h3 class="text-xl font-black">Dra. Sarah Jenkins</h3>
-                <p class="text-blue-600 text-xs font-bold uppercase tracking-widest mb-4">Neuro-Pediatría</p>
-                <div class="flex justify-center gap-2 mb-6">
-                    <span class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold">Stanford</span>
-                    <span class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold">Investigadora</span>
-                </div>
-                <button onclick="openModal('bookingModal')" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600">Agendar Cita</button>
-            </div>
-            <div class="bg-white rounded-[3rem] p-8 medical-card text-center">
-                <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400" class="w-32 h-32 rounded-3xl mx-auto mb-6 object-cover grayscale hover:grayscale-0">
-                <h3 class="text-xl font-black">Dr. Marcus Thorne</h3>
-                <p class="text-blue-600 text-xs font-bold uppercase tracking-widest mb-4">Especialista en Columna</p>
-                <div class="flex justify-center gap-2 mb-6">
-                    <span class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold">Oxford</span>
-                    <span class="bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold">Cirugía Robótica</span>
-                </div>
-                <button onclick="openModal('bookingModal')" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600">Agendar Cita</button>
-            </div>
-        </div>
-    </section>
-
-    <section id="portal" class="page-section pt-32 pb-20 px-6 max-w-6xl mx-auto">
-        <div id="loginCard" class="max-w-md mx-auto bg-white rounded-[3rem] shadow-3xl border border-slate-100 overflow-hidden">
-            <div class="bg-slate-950 p-10 text-center text-white">
-                <h2 class="text-3xl font-black italic">Neuro<span class="text-blue-500">Medical</span></h2>
-                <p class="text-slate-400 text-sm mt-4 uppercase tracking-widest font-bold">Sistema de Gestión Centralizado</p>
-            </div>
-            <div class="p-10 space-y-6">
-                <div class="relative">
-                    <i data-lucide="mail" class="absolute left-4 top-4 w-5 h-5 text-slate-400"></i>
-                    <input type="email" id="loginEmail" placeholder="Usuario" class="w-full pl-12 p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 ring-blue-500 font-medium">
-                </div>
-                <div class="relative">
-                    <i data-lucide="lock" class="absolute left-4 top-4 w-5 h-5 text-slate-400"></i>
-                    <input type="password" id="loginPass" placeholder="Clave de Acceso" class="w-full pl-12 p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 ring-blue-500 font-medium">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="handleLogin('paciente')" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:shadow-blue-200 transition">PACIENTE</button>
-                    <button onclick="handleLogin('admin')" class="bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:shadow-slate-300 transition">ADMIN</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="viewAdmin" class="hidden">
-            <div class="grid grid-cols-12 gap-6">
-                <aside class="col-span-12 lg:col-span-3 bg-white p-8 rounded-[2.5rem] border border-slate-100 h-fit">
-                    <div class="flex items-center gap-3 mb-10">
-                        <div class="w-10 h-10 bg-blue-600 rounded-full"></div>
-                        <div><p class="font-black text-sm">Control de Mando</p><p class="text-[10px] text-green-500 font-bold uppercase tracking-tighter">Sistema Activo</p></div>
-                    </div>
-                    <nav class="space-y-4 font-bold text-sm text-slate-500">
-                        <button class="flex items-center gap-3 text-blue-600 w-full"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</button>
-                        <button class="flex items-center gap-3 w-full hover:text-blue-600 transition"><i data-lucide="users" class="w-4 h-4"></i> Pacientes</button>
-                        <button class="flex items-center gap-3 w-full hover:text-blue-600 transition"><i data-lucide="calendar" class="w-4 h-4"></i> Citas</button>
-                        <button onclick="logout()" class="flex items-center gap-3 w-full text-red-500 pt-10"><i data-lucide="log-out" class="w-4 h-4"></i> Salir</button>
-                    </nav>
-                </aside>
-                <div class="col-span-12 lg:col-span-9 space-y-6">
-                    <div class="grid grid-cols-3 gap-6">
-                        <div class="bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl shadow-blue-200">
-                            <p class="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Cirugías Mes</p>
-                            <h4 class="text-4xl font-black">128</h4>
-                            <p class="text-[10px] mt-4 font-bold">+12% vs mes anterior</p>
-                        </div>
-                        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                            <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Ingresos Netos</p>
-                            <h4 class="text-4xl font-black">$450k</h4>
-                            <div class="w-full bg-slate-100 h-1 mt-4 rounded-full"><div class="bg-blue-600 w-3/4 h-full rounded-full"></div></div>
-                        </div>
-                        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm text-center">
-                            <div class="inline-flex items-center justify-center p-4 bg-emerald-50 text-emerald-600 rounded-2xl mb-2">
-                                <i data-lucide="trending-up"></i>
-                            </div>
-                            <h4 class="text-lg font-black">Alta Eficiencia</h4>
-                            <p class="text-[10px] text-slate-400 uppercase font-bold">Nivel de Servicio</p>
-                        </div>
-                    </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                        <h3 class="text-xl font-bold mb-6">Agenda Quirúrgica Hoy</h3>
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="text-slate-400 border-b border-slate-100">
-                                    <th class="pb-4">Paciente</th>
-                                    <th class="pb-4">Cirujano</th>
-                                    <th class="pb-4">Procedimiento</th>
-                                    <th class="pb-4">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-slate-600">
-                                <tr class="border-b border-slate-50">
-                                    <td class="py-4 font-bold">Ricardo S.</td>
-                                    <td class="py-4">Dr. Vance</td>
-                                    <td class="py-4">Craneotomía</td>
-                                    <td class="py-4"><span class="bg-orange-50 text-orange-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">En Quirófano</span></td>
-                                </tr>
-                                <tr class="border-b border-slate-50">
-                                    <td class="py-4 font-bold">Lucía M.</td>
-                                    <td class="py-4">Dra. Jenkins</td>
-                                    <td class="py-4">Biopsia Stereotaxica</td>
-                                    <td class="py-4"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Programado</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="viewPaciente" class="hidden">
-            <div class="max-w-4xl mx-auto bg-white rounded-[3rem] shadow-3xl overflow-hidden border border-slate-100">
-                <div class="bg-blue-600 p-12 text-white relative">
-                    <div class="absolute right-10 top-10 opacity-10"><i data-lucide="brain" class="w-40 h-40"></i></div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-blue-200 text-xs font-black uppercase tracking-widest mb-2 block">Expediente Médico Digital</span>
-                            <h2 class="text-4xl font-black">Hola, <span id="userNameDisplay">Camilo</span></h2>
-                            <p class="mt-4 text-blue-100 flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Sede Central - NeuroMedical</p>
-                        </div>
-                        <button onclick="logout()" class="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition"><i data-lucide="power"></i></button>
-                    </div>
-                </div>
-                <div class="p-12 grid md:grid-cols-2 gap-10">
-                    <div class="space-y-6">
-                        <h3 class="text-lg font-bold">Mis Próximas Citas</h3>
-                        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 relative group">
-                            <div class="absolute right-4 top-4 bg-white p-2 rounded-lg text-blue-600 shadow-sm"><i data-lucide="clock" class="w-4 h-4"></i></div>
-                            <p class="font-black text-slate-800">Evaluación Neurología</p>
-                            <p class="text-sm text-slate-500 mt-1">Dr. Julian Vance</p>
-                            <p class="text-blue-600 font-bold text-xs mt-4">25 de Feb - 09:30 AM</p>
-                        </div>
-                        <button onclick="openModal('bookingModal')" class="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-bold hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600 transition-all">Nueva Cita</button>
-                    </div>
-                    <div class="space-y-6">
-                        <h3 class="text-lg font-bold">Diagnóstico por Imagen</h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition">
-                                <div class="flex items-center gap-4">
-                                    <div class="p-3 bg-red-50 text-red-600 rounded-xl"><i data-lucide="file-text"></i></div>
-                                    <div><p class="font-bold text-sm">Resonancia_T1.pdf</p><p class="text-[10px] text-slate-400">Hace 2 días</p></div>
-                                </div>
-                                <button class="p-2 hover:bg-slate-100 rounded-lg"><i data-lucide="download" class="w-4 h-4 text-slate-400"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <div id="bookingModal" class="fixed inset-0 bg-slate-950/40 hidden items-center justify-center p-6 z-[200] backdrop-blur-md">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 animate-in zoom-in duration-300 relative shadow-3xl">
-            <button onclick="closeModal('bookingModal')" class="absolute right-8 top-8 text-slate-400"><i data-lucide="x"></i></button>
-            <h3 class="text-3xl font-black mb-2">Nueva <span class="text-blue-600">Reserva</span></h3>
-            <p class="text-slate-400 mb-8 text-sm">Complete sus datos para agendar con un especialista.</p>
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="bookName" placeholder="Nombres" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 ring-blue-500">
-                    <input type="text" placeholder="Apellidos" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 ring-blue-500">
-                </div>
-                <input type="email" placeholder="Correo electrónico" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 ring-blue-500">
-                <select class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 ring-blue-500 appearance-none font-bold text-slate-600">
-                    <option>Evaluación General</option>
-                    <option>Segunda Opinión Tumor</option>
-                    <option>Cirugía Robótica Columna</option>
-                </select>
-                <div class="p-6 bg-blue-600 rounded-3xl text-white mt-6">
-                    <p class="text-[10px] font-black uppercase opacity-60 mb-1">Disponibilidad Inmediata</p>
-                    <h4 class="text-lg font-bold">Dr. Julian Vance</h4>
-                    <button onclick="confirmAll()" class="w-full bg-white text-blue-600 py-4 rounded-2xl font-black mt-4 hover:bg-blue-50 transition">CONFIRMAR AHORA</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="notify" class="fixed top-24 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl z-[300] hidden animate-in slide-in-from-top-10 font-bold">
-        <div class="flex items-center gap-3">
-            <i data-lucide="check-circle" class="text-blue-500"></i>
-            <span id="notifyMsg">Cita procesada con éxito</span>
-        </div>
-    </div>
-
+    <!-- Scripts de Control Críticos -->
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
     <script>
-        lucide.createIcons();
-
-        function showSection(id) {
-            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active-section'));
-            document.getElementById(id).classList.add('active-section');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function handleLogin(tipo) {
-            const user = document.getElementById('loginEmail').value || "Especialista";
-            document.getElementById('loginCard').classList.add('hidden');
-            if (tipo === 'paciente') {
-                document.getElementById('viewPaciente').classList.remove('hidden');
-                document.getElementById('userNameDisplay').innerText = user.split('@')[0];
-            } else {
-                document.getElementById('viewAdmin').classList.remove('hidden');
+        // Control Lógico Inmediato de Ciclo de Vida del Sitio
+        document.addEventListener("DOMContentLoaded", () => {
+            const preloader = document.getElementById('global-preloader');
+            
+            // Evaluar sesión activa antes de renderizar la vista de bienvenida
+            if (window.db && window.db.obtenerSesionActual()) {
+                const usuario = window.db.obtenerSesionActual();
+                if (usuario.rol === 'admin') {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+                return;
             }
-            lucide.createIcons();
-            showNotify("Sesión iniciada como " + tipo.toUpperCase());
-        }
 
-        function logout() {
-            document.getElementById('viewPaciente').classList.add('hidden');
-            document.getElementById('viewAdmin').classList.add('hidden');
-            document.getElementById('loginCard').classList.remove('hidden');
-        }
+            // Aplicar configuraciones de tema guardadas en base de datos global
+            const config = window.db ? window.db.obtenerConfiguracion() : null;
+            if (config) {
+                document.documentElement.setAttribute('data-theme', config.theme);
+            }
 
-        function confirmAll() {
-            const name = document.getElementById('bookName').value || "Invitado";
-            closeModal('bookingModal');
-            showNotify("Reserva confirmada para " + name);
-            showSection('portal');
-            handleLogin('paciente');
-        }
-
-        function showNotify(msg) {
-            const el = document.getElementById('notify');
-            document.getElementById('notifyMsg').innerText = msg;
-            el.classList.remove('hidden');
-            setTimeout(() => el.classList.add('hidden'), 3000);
-        }
+            // Remover pantalla de carga con desvanecimiento fluido
+            setTimeout(() => {
+                preloader.style.opacity = '0';
+                preloader.style.visibility = 'hidden';
+            }, 400);
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil Académico - SIA 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { display: flex; align-items: stretch; justify-content: flex-start; overflow: hidden; height: 100vh; }
+        .dashboard-layout { display: flex; width: 100vw; height: 100vh; }
+        .sidebar { width: 260px; height: 100%; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; z-index: 100; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; height: 100%; }
+        .profile-container { max-width: 600px; margin-top: 25px; }
+    </style>
+</head>
+<body>
+    <div class="preloader" id="global-preloader"><div class="spinner"></div></div>
+    <div class="dashboard-layout">
+        <aside class="glass-container sidebar">
+            <div><h3 style="padding-bottom:20px; border-bottom:1px solid var(--glass-border);">Campus pascual bravo</h3>
+                <ul style="list-style:none; margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                    <li><a href="dashboard.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Inicio</a></li>
+                    <li><a href="perfil.html" style="color:var(--text-main); font-weight:700; display:block; padding:10px; border-left:4px solid var(--accent-primary);">Mi Perfil</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <h2>Configuración del Perfil de Usuario</h2>
+            <p style="color: var(--text-muted);">Actualiza tu información de contacto e institucional.</p>
+
+            <div class="glass-container profile-container" style="padding: 30px;">
+                <form id="profile-form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label class="form-label">Nombre Completo</label>
+                        <input type="text" id="prof-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Correo Electrónico Único</label>
+                        <input type="email" id="prof-email" class="form-input" required disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nueva Contraseña de Acceso</label>
+                        <input type="password" id="prof-pass" class="form-input" placeholder="Dejar en blanco para conservar la actual">
+                    </div>
+                    <button class="btn-primary" id="btn-save-profile">Confirmar Cambios en mi Cuenta</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sesion = window.db.obtenerSesionActual();
+            if(!sesion) { window.location.href = 'login.html'; return; }
+
+            setTimeout(() => {
+                document.getElementById('global-preloader').style.opacity = '0';
+                document.getElementById('global-preloader').style.visibility = 'hidden';
+            }, 200);
+
+            document.getElementById('prof-name').value = sesion.nombre;
+            document.getElementById('prof-email').value = sesion.correo;
+
+            document.getElementById('btn-save-profile').addEventListener('click', () => {
+                const name = document.getElementById('prof-name').value.trim();
+                const pass = document.getElementById('prof-pass').value;
+
+                if(!name) { window.app.mostrarToast('El nombre no puede estar vacío.', 'warning'); return; }
+
+                const updateData = { nombre: name };
+                if(pass.trim().length >= 6) updateData.contrasena = pass;
+
+                window.db.actualizarUsuario(sesion.id, updateData);
+                window.app.mostrarToast('Perfil modificado con éxito.', 'success');
+            });
+        });
+    </script>
+</body>
+</html>

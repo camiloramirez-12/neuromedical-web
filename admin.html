@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consola de Administración Avanzada - SIA 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { display: flex; align-items: stretch; justify-content: flex-start; min-height: 100vh; }
+        .dashboard-layout { display: flex; width: 100vw; min-height: 100vh; }
+        .sidebar { width: 260px; height: 100%; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; z-index: 100; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .admin-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-top: 25px; }
+        .management-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+        .management-table th, .management-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .management-table th { background: rgba(255,255,255,0.02); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+        .backup-zone { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        .search-wrapper { margin-top: 15px; position: relative; }
+        .maintenance-card { border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.05); }
+        .chart-holder { width: 100%; height: 200px; display: flex; justify-content: center; align-items: center; margin-top: 15px; }
+        @media (max-width: 992px) { 
+            body { overflow-y: auto; height: auto; }
+            .dashboard-layout { flex-direction: column; overflow-y: auto; height: auto; }
+            .admin-grid { grid-template-columns: 1fr; } 
+            .sidebar { width: 100% !important; height: auto !important; padding: 16px !important; }
+            .sidebar-menu { flex-direction: row !important; overflow-x: auto; gap: 12px !important; margin-top: 15px !important; }
+            .menu-item a { padding: 8px 12px !important; white-space: nowrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="preloader" id="global-preloader"><div class="spinner"></div></div>
+    <div class="dashboard-layout">
+        
+        <aside class="glass-container sidebar">
+            <div>
+                <h3 class="sidebar-brand" style="color: var(--danger); font-weight:700;">SIA Core Admin</h3>
+                <ul class="sidebar-menu" style="list-style:none;">
+                    <li class="menu-item active"><a href="admin.html" style="color:var(--text-main); font-weight:700; display:block; padding:10px; border-left:4px solid var(--danger);">Panel Maestro</a></li>
+                </ul>
+            </div>
+            <button class="btn-secondary" onclick="window.db.cerrarSesion(); window.location.href='index.html';">Cerrar Consola</button>
+        </aside>
+
+        <main class="main-content">
+            <header>
+                <h2>Consola de Control de Infraestructura</h2>
+                <p style="color: var(--text-muted);">Mantenimiento de roles jerárquicos, analítica del campus y publicación de anuncios síncronos globales.</p>
+            </header>
+
+            <section class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:20px; margin-top:25px;">
+                <div class="interactive-card">
+                    <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">CUENTAS EN LA NUBE</span>
+                    <h3 style="font-size:2rem; margin-top:5px; color:var(--accent-primary);" id="adm-metric-users">0</h3>
+                </div>
+                <div class="interactive-card">
+                    <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">PROMEDIO GLOBAL CAMPUS</span>
+                    <h3 style="font-size:2rem; margin-top:5px; color:var(--success);" id="adm-metric-promedio">0.0</h3>
+                </div>
+                <div class="interactive-card">
+                    <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">MATERIA EN RIESGO</span>
+                    <h3 style="font-size:1.2rem; margin-top:12px; color:var(--danger); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="adm-metric-riesgo">Ninguna</h3>
+                </div>
+                <div class="interactive-card">
+                    <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">ANUNCIOS AL AIRE</span>
+                    <h3 style="font-size:2rem; margin-top:5px; color:var(--warning);" id="adm-metric-announcements">0</h3>
+                </div>
+            </section>
+
+            <div class="admin-grid">
+                <div>
+                    <div class="interactive-card" style="margin-bottom: 25px;">
+                        <h3>Creación de Cuentas Autorizadas (Profesores / Alumnos)</h3>
+                        <form id="admin-user-form" onsubmit="return false;" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:15px;">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label">Nombre Completo</label>
+                                <input type="text" id="adm-u-name" class="form-input" required placeholder="Ej: Dr. Carlos Ochoa">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Correo Institucional</label>
+                                <input type="email" id="adm-u-email" class="form-input" required placeholder="carlos@universidad.edu.co">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contraseña de Acceso</label>
+                                <input type="password" id="adm-u-pass" class="form-input" required placeholder="Mínimo 6 caracteres">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Rol del Usuario</label>
+                                <select id="adm-u-role" class="form-input">
+                                    <option value="student">Estudiante Académico</option>
+                                    <option value="teacher">Profesor de Cátedra / Planta</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Facultad / Programa / Cátedra</label>
+                                <input type="text" id="adm-u-prog" class="form-input" placeholder="Ej: Ingeniería Mecánica" value="Ingeniería Mecánica">
+                            </div>
+                            <button class="btn-primary" id="btn-adm-save-user" style="grid-column: span 2; background: var(--success);">Inyectar Usuario a la Nube</button>
+                        </form>
+                    </div>
+
+                    <div class="interactive-card" style="overflow-x: auto;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                            <h3>Directorio General de Cuentas</h3>
+                            <div class="search-wrapper" style="width:250px; margin:0;">
+                                <input type="text" id="adm-search-input" class="form-input" placeholder="🔍 Filtrar cuenta..." style="padding: 8px 12px; font-size:0.85rem;">
+                            </div>
+                        </div>
+                        <table class="management-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Correo</th>
+                                    <th>Rol</th>
+                                    <th>Programa / Cátedra</th>
+                                    <th style="text-align:right;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 25px;">
+                    <div class="interactive-card">
+                        <h3>Distribución de Roles</h3>
+                        <div class="chart-holder">
+                            <canvas id="rolesChart" width="180" height="180"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="interactive-card">
+                        <h3>Megáfono de Anuncios Globales</h3>
+                        <form id="admin-announcement-form" onsubmit="return false;" style="margin-top:15px;">
+                            <div class="form-group">
+                                <label class="form-label">Mensaje del Comunicado</label>
+                                <textarea id="adm-ann-text" class="form-input" style="height:80px; resize:none;" required placeholder="Ej: 🚨 Mantenimiento programado hoy."></textarea>
+                            </div>
+                            <button class="btn-primary" id="btn-publish-ann" style="background:var(--warning); color:#000;">📢 Emitir Comunicado</button>
+                        </form>
+                        <div id="active-announcements-list" style="margin-top:15px; display:flex; flex-direction:column; gap:8px;"></div>
+                    </div>
+
+                    <!-- INTERRUPTOR CORREGIDO -->
+                    <div class="interactive-card maintenance-card">
+                        <h3>Estado Operativo del SIA</h3>
+                        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:2px;">Bloquea el ingreso a estudiantes.</p>
+                        <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <span id="maintenance-status-label" style="font-weight:700; color:var(--success);">● SISTEMA ONLINE</span>
+                            <button class="btn-primary" id="btn-toggle-maintenance" style="width:auto; padding:8px 12px; font-size:0.8rem; background:var(--danger);">Bloquear App</button>
+                        </div>
+                    </div>
+
+                    <div class="interactive-card">
+                        <h3>Herramientas de Infraestructura</h3>
+                        <div class="backup-zone">
+                            <button class="btn-primary" id="btn-export-db">📤 Exportar Backup JSON</button>
+                            <div style="border-top: 1px dashed var(--glass-border); padding-top:15px;">
+                                <label class="form-label">Cargar Respaldo Estructural</label>
+                                <input type="file" id="import-file-input" accept=".json" style="display:none;">
+                                <button class="btn-secondary" onclick="document.getElementById('import-file-input').click();">Importar JSON</button>
+                            </div>
+                            <button class="btn-primary" style="background:var(--danger); margin-top:15px;" id="btn-wipe-db">🚨 Purgar Servidor (Reset)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="global-toast-container"></div>
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const sesion = window.db.obtenerSesionActual();
+            if(!sesion || sesion.rol !== 'admin') { window.location.href = 'login.html'; return; }
+
+            await window.db.descargarDatosDeLaNube();
+
+            setTimeout(() => {
+                document.getElementById('global-preloader').style.opacity = '0';
+                document.getElementById('global-preloader').style.visibility = 'hidden';
+            }, 200);
+
+            let modoMantenimientoActivo = false;
+
+            async function generarHashSHA256(texto) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(texto);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            function calcularMetricasAvanzadas() {
+                const usuarios = window.db.obtenerUsuarios();
+                const materias = window.db.obtenerTodasLasMaterias();
+                let sumaNotas = 0, conteoMateriasConNota = 0, mapaMateriasRiesgo = {};
+
+                materias.forEach(m => {
+                    if(m.notas && m.notas.length > 0) {
+                        let sumaCortes = 0, porcentajeTotal = 0;
+                        m.notas.forEach(n => {
+                            sumaCortes += (parseFloat(n.nota) * (parseFloat(n.porcentaje) / 100));
+                            porcentajeTotal += parseFloat(n.porcentaje);
+                        });
+                        let notaFinalEstimada = porcentajeTotal > 0 ? (sumaCortes / (porcentajeTotal / 100)) : 0;
+                        sumaNotas += notaFinalEstimada;
+                        conteoMateriasConNota++;
+
+                        if(!mapaMateriasRiesgo[m.name]) mapaMateriasRiesgo[m.name] = { suma: 0, conteo: 0 };
+                        mapaMateriasRiesgo[m.name].suma += notaFinalEstimada;
+                        mapaMateriasRiesgo[m.name].conteo++;
+                    }
+                });
+
+                document.getElementById('adm-metric-promedio').innerText = conteoMateriasConNota > 0 ? (sumaNotas / conteoMateriasConNota).toFixed(2) : "0.0";
+                let peorMateria = "Ninguna", menorPromedio = 5.0;
+                for(let mat in mapaMateriasRiesgo) {
+                    let prom = mapaMateriasRiesgo[mat].suma / mapaMateriasRiesgo[mat].conteo;
+                    if(prom < menorPromedio) { menorPromedio = prom; peorMateria = mat; }
+                }
+                document.getElementById('adm-metric-riesgo').innerText = peorMateria !== "Ninguna" ? `${peorMateria} (${menorPromedio.toFixed(1)})` : "Ninguna";
+            }
+
+            // --- LÓGICA DE MANTENIMIENTO FIX ---
+            async function chequearEstadoMantenimiento() {
+                try {
+                    const res = await fetch(`${window.db.CLOUD_DB_URL}/configuracion_sistema.json`);
+                    const data = await res.json();
+                    modoMantenimientoActivo = (data && data.mantenimiento === true);
+                    
+                    const label = document.getElementById('maintenance-status-label');
+                    const btn = document.getElementById('btn-toggle-maintenance');
+                    
+                    if(modoMantenimientoActivo) {
+                        label.innerText = "● MODO MANTENIMIENTO";
+                        label.style.color = "var(--danger)";
+                        btn.innerText = "Liberar App";
+                        btn.style.background = "var(--success)";
+                    } else {
+                        label.innerText = "● SISTEMA ONLINE";
+                        label.style.color = "var(--success)";
+                        btn.innerText = "Bloquear App";
+                        btn.style.background = "var(--danger)";
+                    }
+                } catch(e){}
+            }
+
+            document.getElementById('btn-toggle-maintenance').addEventListener('click', async () => {
+                const nuevoEstado = !modoMantenimientoActivo;
+                try {
+                    await fetch(`${window.db.CLOUD_DB_URL}/configuracion_sistema.json`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ mantenimiento: nuevoEstado })
+                    });
+                    window.app.mostrarToast(nuevoEstado ? 'Ecosistema bloqueado.' : 'Sistema liberado.', 'info');
+                    setTimeout(chequearEstadoMantenimiento, 300);
+                } catch(e){}
+            });
+
+            function dibujarGraficoRoles() {
+                const ctx = document.getElementById('rolesChart').getContext('2d');
+                const usuarios = window.db.obtenerUsuarios();
+                const estudiantes = usuarios.filter(u => u.rol === 'student').length;
+                const profesores = usuarios.filter(u => u.rol === 'teacher').length;
+                const admins = usuarios.filter(u => u.rol === 'admin' || u.id === 'admin-001').length;
+                const total = estudiantes + profesores + admins;
+                if (total === 0) return;
+
+                ctx.clearRect(0, 0, 180, 180);
+                const datos = [estudiantes, profesores, admins], colores = ['#4f46e5', '#10b981', '#ef4444'];
+                let anguloInicio = 0;
+
+                datos.forEach((valor, i) => {
+                    if(valor === 0) return;
+                    const anguloPorcentaje = (valor / total) * 2 * Math.PI;
+                    ctx.beginPath(); ctx.arc(90, 90, 75, anguloInicio, anguloInicio + anguloPorcentaje);
+                    anguloInicio += anguloPorcentaje; ctx.lineTo(90, 90); ctx.fillStyle = colores[i]; ctx.fill();
+                });
+                ctx.beginPath(); ctx.arc(90, 90, 45, 0, 2 * Math.PI); ctx.fillStyle = '#1e1b4b'; ctx.fill();
+            }
+
+            document.getElementById('adm-search-input').addEventListener('input', (e) => {
+                renderAdminScreen(e.target.value.toLowerCase().trim());
+            });
+
+            async function renderAnnouncements() {
+                const container = document.getElementById('active-announcements-list');
+                container.innerHTML = '';
+                try {
+                    const res = await fetch(`${window.db.CLOUD_DB_URL}/anuncios.json`);
+                    const nube = await res.json();
+                    const lista = nube ? Object.values(nube) : [];
+                    document.getElementById('adm-metric-announcements').innerText = lista.length;
+                    if(lista.length === 0) {
+                        container.innerHTML = `<p style="font-size:0.8rem; color:var(--text-muted);">No hay avisos.</p>`;
+                        return;
+                    }
+                    lista.forEach(a => {
+                        const div = document.createElement('div');
+                        div.style = "display:flex; justify-content:space-between; align-items:center; background:rgba(245,158,11,0.06); border:1px solid var(--warning); padding:8px 12px; border-radius:6px; font-size:0.8rem; width:100%; gap:10px;";
+                        div.innerHTML = `<span style="flex:1;">${a.texto}</span><button class="btn-primary" style="padding:2px 6px; width:auto; background:var(--danger); font-size:0.75rem;" onclick="eliminarAnuncio('${a.id}')">X</button>`;
+                        container.appendChild(div);
+                    });
+                } catch(e){}
+            }
+
+            document.getElementById('btn-publish-ann').addEventListener('click', async () => {
+                const txt = document.getElementById('adm-ann-text').value.trim();
+                if(!txt) return;
+                const nuevoAnuncio = { id: 'ann-' + Math.random().toString(36).substr(2, 9), texto: txt };
+                try {
+                    await fetch(`${window.db.CLOUD_DB_URL}/anuncios/${nuevoAnuncio.id}.json`, { method: 'PUT', body: JSON.stringify(nuevoAnuncio) });
+                    document.getElementById('adm-ann-text').value = '';
+                    window.app.mostrarToast('Anuncio transmitido.', 'success');
+                    renderAnnouncements();
+                } catch(e){}
+            });
+
+            window.eliminarAnuncio = async function(id) {
+                try {
+                    await fetch(`${window.db.CLOUD_DB_URL}/anuncios/${id}.json`, { method: 'DELETE' });
+                    renderAnnouncements();
+                } catch(e){}
+            };
+
+            document.getElementById('btn-adm-save-user').addEventListener('click', async () => {
+                const name = document.getElementById('adm-u-name').value.trim();
+                const email = document.getElementById('adm-u-email').value.trim();
+                const pass = document.getElementById('adm-u-pass').value;
+                const role = document.getElementById('adm-u-role').value;
+                const prog = document.getElementById('adm-u-prog').value.trim();
+
+                if(!name || !email || !pass) { window.app.mostrarToast('Formulario incompleto.', 'warning'); return; }
+                const passHash = await generarHashSHA256(pass);
+                const nuevoU = { nombre: name, correo: email, contrasena: passHash, rol: role, programa: prog, semestre: 1, foto: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>" };
+
+                const res = window.db.guardarUsuario(nuevoU);
+                if(res.error) { window.app.mostrarToast(res.mensaje, 'danger'); } else {
+                    window.app.mostrarToast('Usuario inyectado.', 'success');
+                    document.getElementById('adm-u-name').value = ''; document.getElementById('adm-u-email').value = ''; document.getElementById('adm-u-pass').value = '';
+                    renderAdminScreen(); dibujarGraficoRoles();
+                }
+            });
+
+            function renderAdminScreen(filtro = "") {
+                const usuarios = window.db.obtenerUsuarios();
+                document.getElementById('adm-metric-users').innerText = usuarios.length;
+                const tbody = document.getElementById('admin-users-tbody');
+                tbody.innerHTML = '';
+
+                usuarios.forEach(u => {
+                    if(u.id === 'admin-001') return;
+                    if(filtro && !u.nombre.toLowerCase().includes(filtro) && !u.correo.toLowerCase().includes(filtro)) return;
+
+                    const badgeColor = u.rol === 'teacher' ? 'var(--success)' : 'var(--accent-primary)';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${u.nombre}</strong></td>
+                        <td>${u.correo}</td>
+                        <td><span style="font-size:0.75rem; background:rgba(255,255,255,0.04); padding:4px 8px; border-radius:10px; font-weight:700; border-left:3px solid ${badgeColor}">${u.rol.toUpperCase()}</span></td>
+                        <td style="color:var(--text-muted); font-size:0.85rem;">${u.programa || 'N/A'}</td>
+                        <td style="text-align:right;"><button class="btn-primary btn-danger" style="padding:4px 8px; width:auto; font-size:0.8rem;" onclick="eliminarUsuarioId('${u.id}')">Baja</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            window.eliminarUsuarioId = function(id) {
+                if(confirm('¿Remover usuario?')) {
+                    let usuarios = window.db.obtenerUsuarios().filter(u => u.id !== id);
+                    localStorage.setItem(window.db.INIT_KEY_USERS, JSON.stringify(usuarios));
+                    window.db._guardarEnLaNube('usuarios', usuarios);
+                    renderAdminScreen(); dibujarGraficoRoles();
+                }
+            };
+
+            // --- SECCIÓN DE IMPORTACIÓN CORREGIDA (MERGE INTELIGENTE) ---
+            document.getElementById('import-file-input').addEventListener('change', function(e) {
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    try {
+                        const parsedData = JSON.parse(event.target.result);
+                        let usuariosEntrantes = [];
+
+                        if (Array.isArray(parsedData)) {
+                            usuariosEntrantes = parsedData;
+                        } else if (parsedData.usuarios && Array.isArray(parsedData.usuarios)) {
+                            usuariosEntrantes = parsedData.usuarios;
+                        } else {
+                            window.app.mostrarToast('Formato JSON incompatible.', 'danger');
+                            return;
+                        }
+
+                        // Obtener los usuarios actuales en LocalStorage para no sobreescribir todo
+                        let usuariosActuales = window.db.obtenerUsuarios();
+
+                        // Fusionar datos evitando duplicar correos electrónicos
+                        usuariosEntrantes.forEach(nuevoU => {
+                            if (!usuariosActuales.some(u => u.correo.toLowerCase() === nuevoU.correo.toLowerCase())) {
+                                usuariosActuales.push(nuevoU);
+                            }
+                        });
+
+                        // Guardar la combinación localmente y mandarla limpia a Firebase
+                        localStorage.setItem(window.db.INIT_KEY_USERS, JSON.stringify(usuariosActuales));
+                        await window.db._guardarEnLaNube('usuarios', usuariosActuales);
+
+                        window.app.mostrarToast('Cuentas acopladas y subidas a la nube con éxito.', 'success');
+                        setTimeout(() => location.reload(), 1200);
+                    } catch(err) {
+                        window.app.mostrarToast('Error al parsear el archivo JSON.', 'danger');
+                    }
+                };
+                reader.readAsText(e.target.files[0]);
+            });
+
+            document.getElementById('btn-export-db').addEventListener('click', () => {
+                const complete = { usuarios: window.db.obtenerUsuarios(), materias: window.db.obtenerTodasLasMaterias() };
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(complete, null, 4));
+                const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "SIA_MASTER_BACKUP.json"); a.click();
+            });
+
+            document.getElementById('btn-wipe-db').addEventListener('click', async () => {
+                if(confirm('¿Purgar base de datos entera de Firebase?')) {
+                    localStorage.clear(); sessionStorage.clear();
+                    await fetch(`${window.db.CLOUD_DB_URL}/.json`, { method: 'DELETE' });
+                    window.location.href = 'index.html';
+                }
+            });
+
+            renderAdminScreen();
+            renderAnnouncements();
+            chequearEstadoMantenimiento();
+            calcularMetricasAvanzadas();
+            dibujarGraficoRoles();
+        });
+    </script>
+</body>
+</html>

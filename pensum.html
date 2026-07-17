@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Pensum Adaptativo y Sincronizado - SIA 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { display: flex; align-items: stretch; justify-content: flex-start; overflow: hidden; height: 100vh; }
+        .dashboard-layout { display: flex; width: 100vw; height: 100vh; }
+        .sidebar { width: 260px; height: 100%; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0; z-index: 100; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; height: 100%; }
+        .progress-block { padding: 25px; margin-bottom: 30px; }
+        .progress-bar-container { background: rgba(255,255,255,0.05); height: 16px; border-radius: 10px; overflow: hidden; margin-top: 15px; border: 1px solid var(--glass-border); }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-primary), var(--success)); width: 0%; transition: width 0.8s ease-in-out; }
+        .semester-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .config-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: var(--border-radius-sm); border: 1px solid var(--glass-border); }
+    </style>
+</head>
+<body>
+    <div class="preloader" id="global-preloader"><div class="spinner"></div></div>
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation Shell -->
+        <aside class="glass-container sidebar">
+            <div>
+                <h3 style="padding-bottom:20px; border-bottom:1px solid var(--glass-border);">Campus pascual bravo</h3>
+                <ul style="list-style:none; margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                    <li><a href="dashboard.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Inicio</a></li>
+                    <li><a href="materias.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Mis Materias</a></li>
+                    <li><a href="pensum.html" style="color:var(--text-main); font-weight:700; display:block; padding:10px; border-left:4px solid var(--accent-primary);">Mi Pensum</a></li>
+                    <li><a href="notas.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Calculadora Notas</a></li>
+                    <li><a href="horarios.html" style="color:var(--text-muted); text-decoration:none; font-weight:600; display:block; padding:10px;">Horarios</a></li>
+                </ul>
+            </div>
+            <button class="btn-secondary" onclick="window.db.cerrarSesion(); window.location.href='index.html';">Salir</button>
+        </aside>
+
+        <!-- Main Area -->
+        <main class="main-content">
+            <header style="margin-bottom: 25px;">
+                <h2>Auditoría del Pensum Académico</h2>
+                <p style="color: var(--text-muted);">Parametrización adaptativa con sincronización en tiempo real en la nube.</p>
+            </header>
+
+            <!-- Configuración Remota de Créditos -->
+            <div class="config-row">
+                <div style="flex: 1;">
+                    <strong style="font-size: 0.95rem;">Créditos Exigidos por el Plan de Estudios:</strong>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 2px;">Se actualizará automáticamente en todos tus dispositivos enlazados.</p>
+                </div>
+                <div style="width: 140px;">
+                    <input type="number" id="cfg-total-credits" class="form-input" min="50" max="250" value="160" style="padding: 8px 12px;">
+                </div>
+            </div>
+
+            <!-- Bloque Estadístico de Progreso -->
+            <section class="glass-container progress-block">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Créditos Consolidados</span>
+                        <h3 style="font-size: 1.8rem; margin-top: 5px;" id="pensum-credits-summary">0 / 160 Aprobados</h3>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Porcentaje Realizado</span>
+                        <h3 style="font-size: 1.8rem; margin-top: 5px; color: var(--success);" id="pensum-percentage">0%</h3>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="pensum-bar"></div>
+                </div>
+            </section>
+
+            <!-- Desglose Muestral -->
+            <section class="semester-grid">
+                <div class="interactive-card">
+                    <h4>Asignaturas Registradas y su Impacto</h4>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Listado general de materias inscritas en tu plan de datos.</p>
+                    <div style="display:flex; flex-direction:column; gap:8px;" id="bloque-materias-pensum">
+                        <!-- Controlado Dinámicamente -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            let sesion = window.db.obtenerSesionActual();
+            if(!sesion) { window.location.href = 'login.html'; return; }
+
+            // 1. Descargar los últimos cambios reales desde Firebase antes de pintar la pantalla
+            await window.db.descargarDatosDeLaNube();
+            
+            // Refrescar la variable de sesión local con lo que se bajó de la nube
+            const usuariosFrescos = window.db.obtenerUsuarios();
+            const usuarioActualizado = usuariosFrescos.find(u => u.id === sesion.id);
+            if (usuarioActualizado) {
+                sesion = usuarioActualizado;
+            }
+
+            setTimeout(() => {
+                document.getElementById('global-preloader').style.opacity = '0';
+                document.getElementById('global-preloader').style.visibility = 'hidden';
+            }, 200);
+
+            const creditosInput = document.getElementById('cfg-total-credits');
+
+            // 2. Cargar los créditos personalizados guardados directamente en el objeto del usuario
+            if (sesion.creditosPlanPersonalizado) {
+                creditosInput.value = sesion.creditosPlanPersonalizado;
+            }
+
+            function recalcularMalla(guardarEnNube = false) {
+                const materias = window.db.obtenerMateriasPorUsuario(sesion.id);
+                let aprobados = 0;
+
+                materias.forEach(m => {
+                    if(m.estado === 'Aprobada') aprobados += parseInt(m.credits || 0);
+                });
+
+                const totalCarrera = parseInt(creditosInput.value) || 160;
+                
+                if (guardarEnNube) {
+                    // Guardamos la configuración dentro del usuario usando actualizarUsuario, 
+                    // el cual empuja los datos automáticamente a Firebase en tiempo real
+                    window.db.actualizarUsuario(sesion.id, {
+                        creditosPlanPersonalizado: totalCarrera
+                    });
+                }
+
+                const porcentaje = Math.min(100, Math.round((aprobados / totalCarrera) * 100));
+
+                document.getElementById('pensum-credits-summary').innerText = `${aprobados} / ${totalCarrera} Créditos Aprobados`;
+                document.getElementById('pensum-percentage').innerText = `${porcentaje}%`;
+                document.getElementById('pensum-bar').style.width = `${porcentaje}%`;
+
+                const container = document.getElementById('bloque-materias-pensum');
+                container.innerHTML = '';
+
+                if(materias.length === 0) {
+                    container.innerHTML = `<span style="color:var(--text-muted); font-size:0.9rem;">No registras materias inscritas en el sistema.</span>`;
+                } else {
+                    materias.forEach(m => {
+                        const item = document.createElement('div');
+                        item.style = "display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.15); padding:12px; border-radius:6px; font-size:0.9rem; border-left: 3px solid " + (m.color || "var(--accent-primary)");
+                        item.innerHTML = `<span><strong>${m.name}</strong> (${m.credits} Créditos)</span><span style="color:${m.estado === 'Aprobada' ? 'var(--success)' : 'var(--warning)'}; font-weight:700;">${m.estado}</span>`;
+                        container.appendChild(item);
+                    });
+                }
+            }
+
+            // Manejador de eventos con retraso (debounce) para no saturar Firebase mientras escribes el número
+            let timeoutId;
+            creditosInput.addEventListener('input', () => {
+                recalcularMalla(false); // Recalcular visualmente al tiro
+                
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    recalcularMalla(true); // Subir a Firebase tras 500ms de dejar de escribir
+                }, 500);
+            });
+
+            recalcularMalla(false);
+        });
+    </script>
+</body>
+</html>
